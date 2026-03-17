@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lora:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 10% 97%;
+    --foreground: 20 22% 20%;
+
+    --card: 30 15% 94%;
+    --card-foreground: 20 22% 20%;
+
+    --popover: 30 12% 96%;
+    --popover-foreground: 20 22% 20%;
+
+    --primary: 20 25% 24%;
+    --primary-foreground: 30 10% 97%;
+
+    --secondary: 25 15% 83%;
+    --secondary-foreground: 20 22% 25%;
+
+    --muted: 30 12% 88%;
+    --muted-foreground: 20 10% 45%;
+
+    --accent: 22 20% 53%;
+    --accent-foreground: 30 10% 97%;
+
+    --warning: 38 60% 50%;
+    --warning-foreground: 20 22% 15%;
+
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 30 10% 97%;
+
+    --border: 25 12% 85%;
+    --input: 25 12% 85%;
+    --ring: 20 25% 24%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 20 22% 18%;
+    --sidebar-foreground: 30 15% 88%;
+    --sidebar-primary: 30 15% 95%;
+    --sidebar-primary-foreground: 20 22% 15%;
+    --sidebar-accent: 20 18% 25%;
+    --sidebar-accent-foreground: 30 15% 92%;
+    --sidebar-border: 20 15% 22%;
+    --sidebar-ring: 22 20% 53%;
+
+    /* Glass tokens */
+    --glass-bg: rgba(252, 249, 248, 0.75);
+    --glass-border: rgba(159, 131, 112, 0.15);
+    --glass-highlight: rgba(189, 179, 165, 0.1);
+    --glass-shadow: 0 20px 25px -5px rgba(78, 60, 48, 0.08), 0 8px 10px -6px rgba(78, 60, 48, 0.05);
+  }
+
+  .dark {
+    --background: 20 15% 10%;
+    --foreground: 30 15% 88%;
+
+    --card: 20 15% 13%;
+    --card-foreground: 30 15% 88%;
+
+    --popover: 20 15% 12%;
+    --popover-foreground: 30 15% 88%;
+
+    --primary: 25 30% 55%;
+    --primary-foreground: 20 15% 10%;
+
+    --secondary: 20 12% 18%;
+    --secondary-foreground: 30 12% 78%;
+
+    --muted: 20 10% 20%;
+    --muted-foreground: 30 10% 55%;
+
+    --accent: 22 20% 45%;
+    --accent-foreground: 30 15% 90%;
+
+    --warning: 38 60% 50%;
+    --warning-foreground: 20 15% 10%;
+
+    --destructive: 0 55% 50%;
+    --destructive-foreground: 30 15% 92%;
+
+    --border: 20 10% 20%;
+    --input: 20 10% 20%;
+    --ring: 25 30% 55%;
+
+    --sidebar-background: 20 18% 8%;
+    --sidebar-foreground: 30 12% 75%;
+    --sidebar-primary: 30 15% 90%;
+    --sidebar-primary-foreground: 20 18% 8%;
+    --sidebar-accent: 20 12% 15%;
+    --sidebar-accent-foreground: 30 12% 85%;
+    --sidebar-border: 20 10% 14%;
+    --sidebar-ring: 25 30% 55%;
+
+    --glass-bg: rgba(20, 15, 12, 0.75);
+    --glass-border: rgba(159, 131, 112, 0.12);
+    --glass-highlight: rgba(159, 131, 112, 0.06);
+    --glass-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Lora', Georgia, serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 
+      0 0 0 1px var(--glass-border),
+      inset 0 1px 0 0 var(--glass-highlight),
+      var(--glass-shadow);
+    border-radius: var(--radius);
+  }
+
+  .glass-panel-hover {
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s ease;
+  }
+  .glass-panel-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 0 0 1px rgba(0, 220, 180, 0.15),
+      inset 0 1px 0 0 var(--glass-highlight),
+      0 25px 30px -8px rgba(0, 0, 0, 0.45), 0 12px 14px -8px rgba(0, 0, 0, 0.35);
+  }
+
+  .status-green {
+    background: hsl(20 25% 24% / 0.1);
+    color: hsl(20 25% 30%);
+  }
+
+  .status-red {
+    background: hsl(0 60% 45% / 0.1);
+    color: hsl(0 60% 50%);
+  }
+
+  .status-warning {
+    background: hsl(38 60% 50% / 0.1);
+    color: hsl(38 60% 45%);
+  }
+
+  .status-accent {
+    background: hsl(22 20% 53% / 0.1);
+    color: hsl(22 20% 45%);
+  }
+
+  .font-serif-display {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-display {
+    font-size: 2.25rem;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
+}

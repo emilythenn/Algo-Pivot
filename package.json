@@ -1,0 +1,12 @@
+{
+  "name": "agro-pivot",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "cd frontend && bun install && bun run vite",
+    "build": "cd frontend && bun install && bun run vite build",
+    "build:dev": "cd frontend && bun install && bun run vite build --mode development",
+    "preview": "cd frontend && bun run vite preview",
+    "test": "cd frontend && bun run vitest run"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "agri-guardian-backend",
+  "version": "1.0.0",
+  "description": "Supabase backend for Agri-Guardian Guide",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run local:start && npm run functions:serve:agro",
+    "local:start": "npx supabase start",
+    "local:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:push": "npx supabase db push --db-url \"$DATABASE_URL\"",
+    "db:push:schema": "node --dns-result-order=ipv4first push-schema.mjs",
+    "functions:serve": "npx supabase functions serve --env-file supabase/.env",
+    "functions:serve:agro": "npx supabase functions serve agro-chat --env-file supabase/.env",
+    "functions:deploy": "npx supabase functions deploy",
+    "supabase:login": "npx supabase login",
+    "supabase:link": "npx supabase link --project-ref fufndhqooqthptijzpmv",
+    "supabase:status": "npx supabase status"
+  },
+  "dependencies": {
+    "pg": "^8.20.0"
+  }
+}
