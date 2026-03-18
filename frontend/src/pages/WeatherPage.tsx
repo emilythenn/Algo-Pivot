@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Cloud, Droplets, Thermometer, Wind, CloudRain, Sun, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
+import { Cloud, Droplets, Thermometer, Wind, CloudRain, Sun, AlertTriangle, Loader2, Snowflake, CloudSun, CloudDrizzle } from "lucide-react";
 import { GlassCard } from "@/components/GlassCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -9,7 +9,22 @@ import { fetchWeatherData } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-const weatherIcons: Record<string, any> = { "☀️": Sun, "🌤️": Sun, "⛅": Cloud, "🌥️": Cloud, "☁️": Cloud, "🌧️": CloudRain, "⛈️": CloudRain, "🌦️": CloudRain };
+
+// Helper to pick a weather image/icon based on weather data
+function getWeatherImage({ temperature, temp_high, temp_low, rain_percent, rainfall_mm, humidity, wind_kmh, wind_speed, condition }: any) {
+  // Use temp_high if available, else temperature
+  const temp = temp_high ?? temperature;
+  const rain = rain_percent ?? rainfall_mm;
+  const wind = wind_kmh ?? wind_speed;
+  if (!condition && temp == null) return Sun;
+  if (rain > 60 || (condition && condition.toLowerCase().includes("rain"))) return CloudRain;
+  if (humidity > 85) return CloudDrizzle;
+  if (wind > 30) return Wind;
+  if (temp >= 33) return Sun;
+  if (temp <= 20) return Snowflake;
+  if (condition && condition.toLowerCase().includes("cloud")) return CloudSun;
+  return Cloud;
+}
 
 import { MALAYSIA_STATES, getDistrictsByState } from "@/lib/malaysiaRegions";
 
@@ -220,15 +235,16 @@ export default function WeatherPage() {
       )}
 
       {/* 7 Day Forecast Cards */}
+
       <div>
         <h3 className="text-base font-semibold text-foreground mb-4">7-Day Forecast</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {forecast.map((day: any, i: number) => {
             if (!day) return null;
-            // Use normalized backend format
             const dateStr = day.date;
             const weatherDesc = day.condition || "";
             const iconCode = day.icon || "03d";
+            const WeatherImage = getWeatherImage(day);
             return (
               <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.04 }}>
                 <GlassCard hoverable className="p-4">
@@ -236,7 +252,10 @@ export default function WeatherPage() {
                     <div>
                       <p className="text-sm font-semibold text-foreground">{dateStr}</p>
                     </div>
-                    <img src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`} alt="icon" className="h-8 w-8" />
+                    <div className="flex flex-col items-center gap-1">
+                      <img src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`} alt="icon" className="h-8 w-8" />
+                      <WeatherImage className="h-6 w-6 text-accent" strokeWidth={1.5} />
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground mb-3">{weatherDesc}</p>
                   <div className="space-y-2 text-xs">
