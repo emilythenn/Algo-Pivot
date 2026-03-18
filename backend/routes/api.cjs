@@ -83,7 +83,7 @@ router.post('/weather-ai', async (req, res) => {
     let current = null;
     let forecast = [];
     if (data.daily && Array.isArray(data.daily)) {
-      forecast = data.daily.slice(0, 7).map(day => ({
+      forecast = data.daily.map(day => ({
         date: new Date(day.dt * 1000).toISOString().split('T')[0],
         temp_high: day.temp.max,
         temp_low: day.temp.min,
@@ -93,18 +93,19 @@ router.post('/weather-ai', async (req, res) => {
         condition: day.weather && day.weather[0] ? day.weather[0].description : '',
         icon: day.weather && day.weather[0] ? day.weather[0].icon : '03d',
       }));
+      // If a date is selected, slice forecast to start from that date
+      if (date) {
+        const idx = forecast.findIndex(d => d.date === date);
+        if (idx !== -1) {
+          forecast = forecast.slice(idx, idx + 7);
+        } else {
+          forecast = forecast.slice(0, 7);
+        }
+      } else {
+        forecast = forecast.slice(0, 7);
+      }
     }
-    if (data.current) {
-      current = {
-        temperature: data.current.temp,
-        feels_like: data.current.feels_like,
-        rainfall_mm: data.current.rain || 0,
-        condition: data.current.weather && data.current.weather[0] ? data.current.weather[0].description : '',
-        wind_speed: data.current.wind_speed,
-        wind_direction: data.current.wind_deg ? `${data.current.wind_deg}°` : '',
-        humidity: data.current.humidity,
-      };
-    } else if (forecast.length > 0) {
+    if (forecast.length > 0) {
       // fallback: use first forecast day as current
       const d = forecast[0];
       current = {
