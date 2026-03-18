@@ -162,9 +162,13 @@ module.exports = {
     "Tanjung Manis": { lat: 2.1333, lon: 111.2167 },
     "Tatau": { lat: 2.8333, lon: 112.8333 },
   },
-  "Wilayah Persekutuan": {
+  "Wilayah Persekutuan Kuala Lumpur": {
     "Kuala Lumpur": { lat: 3.1390, lon: 101.6869 },
+  },
+  "Wilayah Persekutuan Labuan": {
     "Labuan": { lat: 5.2831, lon: 115.2308 },
+  },
+  "Wilayah Persekutuan Putrajaya": {
     "Putrajaya": { lat: 2.9264, lon: 101.6964 },
   },
 };
