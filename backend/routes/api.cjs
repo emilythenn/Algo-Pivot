@@ -93,16 +93,30 @@ router.post('/weather-ai', async (req, res) => {
         condition: day.weather && day.weather[0] ? day.weather[0].description : '',
         icon: day.weather && day.weather[0] ? day.weather[0].icon : '03d',
       }));
-      // If a date is selected, slice forecast to start from that date
+      // If a date is selected, slice forecast to start from that date, else fallback to earliest available
       if (date) {
         const idx = forecast.findIndex(d => d.date === date);
         if (idx !== -1) {
           forecast = forecast.slice(idx, idx + 7);
         } else {
+          // If selected date is out of range, fallback to earliest available (today)
           forecast = forecast.slice(0, 7);
         }
       } else {
         forecast = forecast.slice(0, 7);
+      }
+      // If forecast is empty for any reason, fallback to full available
+      if (!forecast || forecast.length === 0) {
+        forecast = data.daily.map(day => ({
+          date: new Date(day.dt * 1000).toISOString().split('T')[0],
+          temp_high: day.temp.max,
+          temp_low: day.temp.min,
+          rain_percent: Math.round((day.pop || 0) * 100),
+          wind_kmh: Math.round(day.wind_speed),
+          humidity: day.humidity,
+          condition: day.weather && day.weather[0] ? day.weather[0].description : '',
+          icon: day.weather && day.weather[0] ? day.weather[0].icon : '03d',
+        })).slice(0, 7);
       }
     }
     if (forecast.length > 0) {
