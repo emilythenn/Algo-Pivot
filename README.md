@@ -1,6 +1,21 @@
+
 # Agro-Pivot
 
-Local development guide for running the frontend and backend.
+## Features & Functions
+
+- AI-powered crop recommendations (climate, market, regional soil)
+- Weather forecast integration (MET Malaysia API)
+- Live market prices (Aprifeaks API)
+- Regional soil data integration
+- Supabase Edge Functions for AI, market, and weather
+- Secure API key management (.env, Supabase dashboard)
+- User authentication and profile management (Supabase)
+- Profile photo upload and storage (Supabase Storage)
+- Evidence report and scan analysis (AI + Supabase)
+- Alerts, notifications, and user settings
+- Modern frontend (React + Vite + Tailwind)
+- Robust error handling and CORS support
+- Local development with Docker, Node.js, Supabase CLI
 
 ## Prerequisites
 
