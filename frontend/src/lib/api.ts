@@ -1,3 +1,49 @@
+// ---- Crop Advisory ----
+export async function fetchCropAdvisory(state = "Kedah", season = "current", language = "en") {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+  const url = `${backendUrl}/api/crop-advisory`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ state, season, language })
+  });
+  if (!res.ok) {
+    let errorMsg = "Failed to fetch crop advisory";
+    try {
+      const text = await res.text();
+      errorMsg = text;
+    } catch {}
+    throw new Error(errorMsg);
+  }
+  try {
+    return await res.json();
+  } catch (e) {
+    throw new Error("Crop Advisory API did not return valid JSON.");
+  }
+}
+// ---- Market AI ----
+export async function fetchMarketData(language = "en") {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+  const url = `${backendUrl}/api/market-ai`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ language })
+  });
+  if (!res.ok) {
+    let errorMsg = "Failed to fetch market data";
+    try {
+      const text = await res.text();
+      errorMsg = text;
+    } catch {}
+    throw new Error(errorMsg);
+  }
+  try {
+    return await res.json();
+  } catch (e) {
+    throw new Error("Market API did not return valid JSON.");
+  }
+}
 import { supabase } from "@/integrations/supabase/client";
 // ---- Scan Analyze ----
 /**
@@ -52,24 +98,27 @@ export async function fetchWeatherData(state = "Putrajaya", district = "237", da
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ state, district, date })
   });
-  if (!res.ok) {
-    let errorMsg = "Failed to fetch weather data";
-    try {
-      const text = await res.text();
-      errorMsg = text;
-    } catch {}
-    throw new Error(errorMsg);
-  }
+  let result;
   try {
-    const result = await res.json();
-    // Limit forecast to 7 days if present
-    if (result.forecast && Array.isArray(result.forecast)) {
-      result.forecast = result.forecast.slice(0, 7);
-    }
-    return result;
+    result = await res.json();
   } catch (e) {
     throw new Error("Weather API did not return valid JSON.");
   }
+  if (!res.ok) {
+    // If backend returns error JSON, throw it as an object
+    if (result && result.error) throw result;
+    throw new Error(result?.error || "Failed to fetch weather data");
+  }
+  // Limit forecast to 7 days if present and filter to start from selected date
+  if (result.forecast && Array.isArray(result.forecast) && date) {
+    const startIdx = result.forecast.findIndex((d) => d.date === date);
+    if (startIdx !== -1) {
+      result.forecast = result.forecast.slice(startIdx, startIdx + 7);
+    } else {
+      result.forecast = result.forecast.slice(0, 7);
+    }
+  }
+  return result;
 }
 
 // ---- Market AI ----

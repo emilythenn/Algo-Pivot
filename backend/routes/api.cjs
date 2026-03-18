@@ -16,14 +16,23 @@ router.post('/weather-ai', async (req, res) => {
   const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
   const { state, district, date } = body;
   if (!state || !district) {
-    return res.status(400).json({ error: 'Missing state or district in request body.' });
+    return res.status(400).json({
+      error: 'Missing state or district in request body.',
+      availableStates: Object.keys(malaysiaLatLon)
+    });
   }
   console.log('[Weather API] Received:', { state, district, date });
   try {
+    const availableDistricts = malaysiaLatLon[state] ? Object.keys(malaysiaLatLon[state]) : [];
     const coords = malaysiaLatLon[state]?.[district];
     if (!coords) {
       console.error('[Weather API] Invalid state or district:', { state, district });
-      return res.status(400).json({ error: 'Invalid state or district', received: { state, district } });
+      return res.status(400).json({
+        error: 'Invalid state or district',
+        received: { state, district },
+        availableStates: Object.keys(malaysiaLatLon),
+        availableDistricts
+      });
     }
 
     // OpenWeather One Call API (7-day forecast)
@@ -34,6 +43,10 @@ router.post('/weather-ai', async (req, res) => {
       const response = await fetch(url);
       if (!response.ok) {
         const errText = await response.text();
+        // Special handling for OpenWeather API key errors
+        if (response.status === 401 && errText.includes('One Call 3.0 requires a separate subscription')) {
+          throw new Error('OpenWeather API key is not valid for One Call 3.0. Please check your OpenWeather subscription plan.');
+        }
         throw new Error('OpenWeather API error: ' + errText);
       }
       data = await response.json();
@@ -55,11 +68,32 @@ router.post('/weather-ai', async (req, res) => {
           icon: '03d',
         };
       });
-      return res.json({ current: forecast[0], forecast });
+      return res.json({
+        current: forecast[0],
+        forecast,
+        mock: true,
+        lat: coords.lat,
+        lon: coords.lon,
+        state,
+        district
+      });
     }
 
     // Map OpenWeather 'current' to frontend expected keys
     let current = null;
+    let forecast = [];
+    if (data.daily && Array.isArray(data.daily)) {
+      forecast = data.daily.slice(0, 7).map(day => ({
+        date: new Date(day.dt * 1000).toISOString().split('T')[0],
+        temp_high: day.temp.max,
+        temp_low: day.temp.min,
+        rain_percent: Math.round((day.pop || 0) * 100),
+        wind_kmh: Math.round(day.wind_speed),
+        humidity: day.humidity,
+        condition: day.weather && day.weather[0] ? day.weather[0].description : '',
+        icon: day.weather && day.weather[0] ? day.weather[0].icon : '03d',
+      }));
+    }
     if (data.current) {
       current = {
         temperature: data.current.temp,
@@ -70,22 +104,28 @@ router.post('/weather-ai', async (req, res) => {
         wind_direction: data.current.wind_deg ? `${data.current.wind_deg}°` : '',
         humidity: data.current.humidity,
       };
-    } else if (data.daily && data.daily.length > 0) {
+    } else if (forecast.length > 0) {
       // fallback: use first forecast day as current
-      const d = data.daily[0];
+      const d = forecast[0];
       current = {
-        temperature: d.temp.day,
-        feels_like: d.feels_like.day,
-        rainfall_mm: d.rain || 0,
-        condition: d.weather && d.weather[0] ? d.weather[0].description : '',
-        wind_speed: d.wind_speed,
-        wind_direction: d.wind_deg ? `${d.wind_deg}°` : '',
+        temperature: d.temp_high,
+        feels_like: d.temp_high,
+        rainfall_mm: d.rain_percent,
+        condition: d.condition,
+        wind_speed: d.wind_kmh,
+        wind_direction: '',
         humidity: d.humidity,
       };
     }
 
-    // Optionally, filter/format the forecast to start from the selected date and limit to 7 days
-    res.json({ current, forecast: data.daily.slice(0, 7) });
+    res.json({
+      current,
+      forecast,
+      lat: coords.lat,
+      lon: coords.lon,
+      state,
+      district
+    });
   } catch (e) {
     console.error('[Weather API] Exception:', e);
     // Fallback to mock data if any error occurs

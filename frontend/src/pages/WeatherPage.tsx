@@ -20,6 +20,7 @@ export default function WeatherPage() {
   const [current, setCurrent] = useState<any>(null);
   const [forecast, setForecast] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [error, setError] = useState<string>("");
   // Remove 'Kedah, Kedah' and only show selected district and state
   const [locationLabel, setLocationLabel] = useState("");
   const [selectedState, setSelectedState] = useState<string>("Kedah");
@@ -47,6 +48,7 @@ export default function WeatherPage() {
 
   const loadWeather = async () => {
     setLoading(true);
+    setError("");
     try {
       // Only load profile location on first load
       if (!user) {
@@ -60,7 +62,15 @@ export default function WeatherPage() {
       setForecast(data.forecast || []);
       setAlerts(data.alerts || []);
     } catch (e: any) {
-      toast({ title: "Weather load failed", description: e.message, variant: "destructive" });
+      if (e && typeof e === "object" && e.error) {
+        setError(e.error + (e.availableStates ? `\nAvailable states: ${e.availableStates.join(", ")}` : "") + (e.availableDistricts ? `\nAvailable districts: ${e.availableDistricts.join(", ")}` : ""));
+      } else {
+        setError(e.message || "Failed to load weather data.");
+      }
+      toast({ title: "Weather load failed", description: e.error || e.message, variant: "destructive" });
+      setCurrent(null);
+      setForecast([]);
+      setAlerts([]);
     } finally {
       setLoading(false);
     }
@@ -73,9 +83,21 @@ export default function WeatherPage() {
     return (
       <div className="max-w-[1200px] mx-auto flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      const [error, setError] = useState<string>("");
       </div>
     );
+  }
+
+  // Compute highest/lowest stats from forecast
+  let tempHigh = null, tempLow = null, rainHigh = null, rainLow = null, windHigh = null, windLow = null, humidityHigh = null, humidityLow = null;
+  if (forecast && forecast.length > 0) {
+    tempHigh = Math.max(...forecast.map(d => d.temp_high));
+    tempLow = Math.min(...forecast.map(d => d.temp_low));
+    rainHigh = Math.max(...forecast.map(d => d.rain_percent));
+    rainLow = Math.min(...forecast.map(d => d.rain_percent));
+    windHigh = Math.max(...forecast.map(d => d.wind_kmh));
+    windLow = Math.min(...forecast.map(d => d.wind_kmh));
+    humidityHigh = Math.max(...forecast.map(d => d.humidity));
+    humidityLow = Math.min(...forecast.map(d => d.humidity));
   }
 
   return (
@@ -93,7 +115,6 @@ export default function WeatherPage() {
               setSelectedDistrict(districts[0] || "");
             }}
           >
-        setError("");
             {MALAYSIA_STATES.map(state => (
               <option key={state} value={state}>{state}</option>
             ))}
@@ -106,11 +127,7 @@ export default function WeatherPage() {
             value={selectedDistrict}
             onChange={e => setSelectedDistrict(e.target.value)}
           >
-          if (!data.current && (!data.forecast || data.forecast.length === 0)) {
-            setError("No weather data available for the selected location.");
-          }
             {getDistrictsByState(selectedState).map(district => (
-          setError(e.message || "Failed to load weather data.");
               <option key={district} value={district}>{district}</option>
             ))}
           </select>
@@ -129,7 +146,7 @@ export default function WeatherPage() {
                   const today = new Date();
       {/* Error Message */}
       {error && (
-        <div className="my-6 p-4 bg-red-100 text-red-700 rounded border border-red-300">
+        <div className="my-6 p-4 bg-red-100 text-red-700 rounded border border-red-300 whitespace-pre-line">
           <strong>Error:</strong> {error}
         </div>
       )}
@@ -174,13 +191,37 @@ export default function WeatherPage() {
       ))}
 
       {/* Current Stats */}
-      {current && (
+      {forecast && forecast.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: t("weather.temperature"), value: `${current.temperature}°C`, icon: Thermometer, sub: `Feels like ${current.feels_like}°C`, color: "text-destructive/70" },
-            { label: t("weather.rainfall"), value: `${current.rainfall_mm}mm`, icon: Droplets, sub: current.condition, color: "text-accent" },
-            { label: t("weather.wind"), value: `${current.wind_speed} km/h`, icon: Wind, sub: current.wind_direction, color: "text-accent/70" },
-            { label: t("weather.humidity"), value: `${current.humidity}%`, icon: Droplets, sub: current.humidity > 80 ? "Very High" : "Normal", color: "text-primary" },
+            {
+              label: t("weather.temperature"),
+              value: `${tempHigh}°C / ${tempLow}°C`,
+              icon: Thermometer,
+              sub: `Highest / Lowest temperature in 7-day forecast`,
+              color: "text-destructive/70"
+            },
+            {
+              label: t("weather.rainfall"),
+              value: `${rainHigh}% / ${rainLow}%`,
+              icon: Droplets,
+              sub: `Highest / Lowest rain chance in 7-day forecast`,
+              color: "text-accent"
+            },
+            {
+              label: t("weather.wind"),
+              value: `${windHigh} km/h / ${windLow} km/h`,
+              icon: Wind,
+              sub: `Highest / Lowest wind in 7-day forecast`,
+              color: "text-accent/70"
+            },
+            {
+              label: t("weather.humidity"),
+              value: `${humidityHigh}% / ${humidityLow}%`,
+              icon: Droplets,
+              sub: `Highest / Lowest humidity in 7-day forecast`,
+              color: "text-primary"
+            },
           ].map((item, i) => (
             <motion.div key={item.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <GlassCard className="p-5">
@@ -201,33 +242,25 @@ export default function WeatherPage() {
         <h3 className="text-base font-semibold text-foreground mb-4">7-Day Forecast</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {forecast.map((day: any, i: number) => {
-            if (!day || typeof day.dt !== "number" || isNaN(day.dt)) return null;
-            let dateObj, dateStr;
-            try {
-              dateObj = new Date(day.dt * 1000);
-              dateStr = dateObj.toISOString().split('T')[0];
-            } catch {
-              return null;
-            }
-            const weatherDesc = day.weather?.[0]?.description || "";
-            const iconCode = day.weather?.[0]?.icon || "03d";
-            // Use OpenWeather icon or fallback
-            const IconComp = weatherIcons[iconCode] || Cloud;
+            if (!day) return null;
+            // Use normalized backend format
+            const dateStr = day.date;
+            const weatherDesc = day.condition || "";
+            const iconCode = day.icon || "03d";
             return (
               <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.04 }}>
                 <GlassCard hoverable className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{dateObj.toLocaleDateString()}</p>
-                      <p className="text-[10px] text-muted-foreground">{dateStr}</p>
+                      <p className="text-sm font-semibold text-foreground">{dateStr}</p>
                     </div>
                     <img src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`} alt="icon" className="h-8 w-8" />
                   </div>
                   <p className="text-xs text-muted-foreground mb-3">{weatherDesc}</p>
                   <div className="space-y-2 text-xs">
-                    <div className="flex justify-between"><span className="text-muted-foreground">High / Low</span><span className="font-semibold tabular-nums text-foreground">{Math.round(day.temp.max)}°C / {Math.round(day.temp.min)}°C</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Rain</span><span className={`font-semibold tabular-nums ${day.pop > 0.6 ? "text-accent" : "text-foreground"}`}>{Math.round((day.pop || 0) * 100)}%</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Wind</span><span className="font-semibold tabular-nums text-foreground">{Math.round(day.wind_speed)} km/h</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">High / Low</span><span className="font-semibold tabular-nums text-foreground">{Math.round(day.temp_high)}°C / {Math.round(day.temp_low)}°C</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Rain</span><span className={`font-semibold tabular-nums ${day.rain_percent > 60 ? "text-accent" : "text-foreground"}`}>{day.rain_percent}%</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Wind</span><span className="font-semibold tabular-nums text-foreground">{day.wind_kmh} km/h</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Humidity</span><span className="font-semibold tabular-nums text-foreground">{day.humidity}%</span></div>
                   </div>
                 </GlassCard>
