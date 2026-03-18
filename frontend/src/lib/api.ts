@@ -60,13 +60,13 @@ export async function analyzeScan(params: {
 import { supabase } from "@/integrations/supabase/client";
 
 // ---- Weather API ----
-export async function fetchWeatherData(state = "Putrajaya", district = "237") {
+export async function fetchWeatherData(state = "Putrajaya", district = "237", date = undefined) {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://symmetrical-guide-x5prw74947q4h5p7-4000.app.github.dev";
   const url = `${backendUrl}/api/weather-ai`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ state, district })
+    body: JSON.stringify({ state, district, date })
   });
   if (!res.ok) {
     let errorMsg = "Failed to fetch weather data";
@@ -77,7 +77,12 @@ export async function fetchWeatherData(state = "Putrajaya", district = "237") {
     throw new Error(errorMsg);
   }
   try {
-    return await res.json();
+    const result = await res.json();
+    // Limit forecast to 7 days if present
+    if (result.forecast && Array.isArray(result.forecast)) {
+      result.forecast = result.forecast.slice(0, 7);
+    }
+    return result;
   } catch (e) {
     throw new Error("Weather API did not return valid JSON.");
   }
