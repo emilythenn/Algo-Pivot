@@ -79,7 +79,7 @@ export default function WeatherPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-8">
-      {/* State/District/Date Selection with Set button */}
+    {/* State/District/Date Selection with Set button */}
       <div className="flex gap-4 items-center mb-4">
         <div>
           <label className="block text-sm font-medium mb-1">State</label>
@@ -128,7 +128,7 @@ export default function WeatherPage() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold font-serif text-foreground mb-1">{t("weather.title")}</h2>
-          <p className="text-sm text-muted-foreground">{t("weather.subtitle")} • {selectedDistrict}, {selectedState}</p>
+          <p className="text-sm text-muted-foreground">{t("weather.subtitle")} • {selectedDistrict}{selectedDistrict && selectedState ? ', ' : ''}{selectedState && selectedDistrict !== selectedState ? selectedState : ''}</p>
         </div>
         <Button variant="outline" size="sm" onClick={loadWeather} className="gap-2">
           <RefreshCw className="h-3.5 w-3.5" /> Refresh
