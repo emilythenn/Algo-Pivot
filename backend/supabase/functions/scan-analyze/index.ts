@@ -18,8 +18,6 @@ serve(async (req) => {
 
   try {
     const { crop_name, image_base64, gps_lat, gps_lng, language = "en" } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const authHeader = req.headers.get("Authorization");
     const isUnknownCrop = !crop_name || crop_name === "unknown";

@@ -7,7 +7,8 @@
     "build": "cd frontend && bun install && bun run vite build",
     "build:dev": "cd frontend && bun install && bun run vite build --mode development",
     "preview": "cd frontend && bun run vite preview",
-    "test": "cd frontend && bun run vitest run"
+    "test": "cd frontend && bun run vitest run",
+    "weather:start": "node weather-server.cjs"
   },
   "dependencies": {
     "cors": "^2.8.6",
