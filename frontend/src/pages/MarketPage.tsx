@@ -12,12 +12,11 @@ const trendIcon = { up: TrendingUp, down: TrendingDown, stable: Minus };
 const trendBadge = { up: "green" as const, down: "red" as const, stable: "accent" as const };
 
 export default function MarketPage() {
+
   const { t, language } = useSettings();
   const [loading, setLoading] = useState(true);
   const [marketData, setMarketData] = useState<any[]>([]);
-  const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showFilter, setShowFilter] = useState(false);
+  const [search, setSearch] = useState("");
 
   const loadMarket = async () => {
     setLoading(true);
@@ -33,27 +32,15 @@ export default function MarketPage() {
 
   useEffect(() => { loadMarket(); }, [language]);
 
-  const filteredData = useMemo(() => {
-    let data = marketData;
-    if (selectedCrops.length > 0) {
-      data = data.filter((item) => selectedCrops.includes(item.crop));
+  const filteredData = marketData.filter((item: any) => {
+    if (search) {
+      return item.crop.toLowerCase().includes(search.toLowerCase());
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      data = data.filter((item) => item.crop?.toLowerCase().includes(q));
-    }
-    return data;
-  }, [marketData, selectedCrops, searchQuery]);
-
-  const toggleCropFilter = (crop: string) => {
-    setSelectedCrops((prev) =>
-      prev.includes(crop) ? prev.filter((c) => c !== crop) : [...prev, crop]
-    );
-  };
+    return true;
+  });
 
   const clearFilters = () => {
-    setSelectedCrops([]);
-    setSearchQuery("");
+    setSearch("");
   };
 
   if (loading) {
@@ -64,12 +51,10 @@ export default function MarketPage() {
     );
   }
 
+  const parseVol = (v: string | undefined | null) => typeof v === "string" ? parseFloat(v.replace(/[^0-9.]/g, "")) || 0 : 0;
   const topGainer = [...filteredData].sort((a, b) => b.change - a.change)[0];
   const topLoser = [...filteredData].sort((a, b) => a.change - b.change)[0];
-  const mostTraded = [...filteredData].sort((a, b) => {
-    const parseVol = (v: string) => parseFloat(v.replace(/[^0-9.]/g, "")) || 0;
-    return parseVol(b.volume) - parseVol(a.volume);
-  })[0];
+  const mostTraded = [...filteredData].sort((a, b) => parseVol(b.volume) - parseVol(a.volume))[0];
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-8">

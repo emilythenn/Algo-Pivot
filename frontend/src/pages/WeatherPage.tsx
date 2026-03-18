@@ -73,6 +73,7 @@ export default function WeatherPage() {
     return (
       <div className="max-w-[1200px] mx-auto flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      const [error, setError] = useState<string>("");
       </div>
     );
   }
@@ -92,6 +93,7 @@ export default function WeatherPage() {
               setSelectedDistrict(districts[0] || "");
             }}
           >
+        setError("");
             {MALAYSIA_STATES.map(state => (
               <option key={state} value={state}>{state}</option>
             ))}
@@ -104,7 +106,11 @@ export default function WeatherPage() {
             value={selectedDistrict}
             onChange={e => setSelectedDistrict(e.target.value)}
           >
+          if (!data.current && (!data.forecast || data.forecast.length === 0)) {
+            setError("No weather data available for the selected location.");
+          }
             {getDistrictsByState(selectedState).map(district => (
+          setError(e.message || "Failed to load weather data.");
               <option key={district} value={district}>{district}</option>
             ))}
           </select>
@@ -117,8 +123,26 @@ export default function WeatherPage() {
               className="border rounded px-2 py-1"
               value={selectedDate}
               onChange={e => setSelectedDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
             />
+                {/* Warning for past dates */}
+                {(() => {
+                  const today = new Date();
+      {/* Error Message */}
+      {error && (
+        <div className="my-6 p-4 bg-red-100 text-red-700 rounded border border-red-300">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+                  const selected = new Date(selectedDate);
+                  if (selected < new Date(today.toISOString().split('T')[0])) {
+                    return (
+                      <div className="text-sm text-warning mt-2">
+                        No forecast data available for past dates.
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
           </div>
           <Button variant="brown" size="sm" onClick={loadWeather} className="gap-2">
             Set
@@ -177,22 +201,33 @@ export default function WeatherPage() {
         <h3 className="text-base font-semibold text-foreground mb-4">7-Day Forecast</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {forecast.map((day: any, i: number) => {
-            const IconComp = weatherIcons[day.icon] || Cloud;
+            if (!day || typeof day.dt !== "number" || isNaN(day.dt)) return null;
+            let dateObj, dateStr;
+            try {
+              dateObj = new Date(day.dt * 1000);
+              dateStr = dateObj.toISOString().split('T')[0];
+            } catch {
+              return null;
+            }
+            const weatherDesc = day.weather?.[0]?.description || "";
+            const iconCode = day.weather?.[0]?.icon || "03d";
+            // Use OpenWeather icon or fallback
+            const IconComp = weatherIcons[iconCode] || Cloud;
             return (
               <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.04 }}>
                 <GlassCard hoverable className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{day.day}</p>
-                      <p className="text-[10px] text-muted-foreground">{day.date}</p>
+                      <p className="text-sm font-semibold text-foreground">{dateObj.toLocaleDateString()}</p>
+                      <p className="text-[10px] text-muted-foreground">{dateStr}</p>
                     </div>
-                    <IconComp className="h-6 w-6 text-accent" strokeWidth={1.5} />
+                    <img src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`} alt="icon" className="h-8 w-8" />
                   </div>
-                  <p className="text-xs text-muted-foreground mb-3">{day.condition}</p>
+                  <p className="text-xs text-muted-foreground mb-3">{weatherDesc}</p>
                   <div className="space-y-2 text-xs">
-                    <div className="flex justify-between"><span className="text-muted-foreground">High / Low</span><span className="font-semibold tabular-nums text-foreground">{day.temp_high}°C / {day.temp_low}°C</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Rain</span><span className={`font-semibold tabular-nums ${day.rain_percent > 60 ? "text-accent" : "text-foreground"}`}>{day.rain_percent}%</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Wind</span><span className="font-semibold tabular-nums text-foreground">{day.wind_kmh} km/h</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">High / Low</span><span className="font-semibold tabular-nums text-foreground">{Math.round(day.temp.max)}°C / {Math.round(day.temp.min)}°C</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Rain</span><span className={`font-semibold tabular-nums ${day.pop > 0.6 ? "text-accent" : "text-foreground"}`}>{Math.round((day.pop || 0) * 100)}%</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Wind</span><span className="font-semibold tabular-nums text-foreground">{Math.round(day.wind_speed)} km/h</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Humidity</span><span className="font-semibold tabular-nums text-foreground">{day.humidity}%</span></div>
                   </div>
                 </GlassCard>

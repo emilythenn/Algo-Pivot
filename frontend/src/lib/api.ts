@@ -1,47 +1,18 @@
-// ---- Simulator AI ----
-export async function runSimulation(params: {
-  crops: string[];
-  weather: string;
-  market_change: number;
-  seed_quality: number;
-  district?: string;
-  language?: string;
-}) {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://symmetrical-guide-x5prw74947q4h5p7-4000.app.github.dev";
-  const url = `${backendUrl}/simulator-ai`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params)
-  });
-  if (!res.ok) {
-    let errorMsg = "Failed to run simulation";
-    try {
-      const text = await res.text();
-      errorMsg = text;
-    } catch {}
-    throw new Error(errorMsg);
-  }
-  try {
-    return await res.json();
-  } catch (e) {
-    throw new Error("Simulator AI API did not return valid JSON.");
-  }
-}
+import { supabase } from "@/integrations/supabase/client";
 // ---- Scan Analyze ----
-export async function analyzeScan(params: {
-  crop_name: string;
-  image_base64?: string;
-  gps_lat?: number;
-  gps_lng?: number;
-  language?: string;
-}) {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://symmetrical-guide-x5prw74947q4h5p7-4000.app.github.dev";
-  const url = `${backendUrl}/scan-analyze`;
+/**
+ * Analyze a crop scan using the backend edge function.
+ * @param {Object} params - { crop_name, image_base64, gps_lat, gps_lng, language }
+ * @returns {Promise<any>} Scan analysis result
+ */
+export async function analyzeScan({ crop_name, image_base64, gps_lat, gps_lng, language }) {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+  // The scan-analyze edge function is typically deployed at /functions/v1/scan-analyze on Supabase
+  const url = `${backendUrl}/functions/v1/scan-analyze`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params)
+    body: JSON.stringify({ crop_name, image_base64, gps_lat, gps_lng, language })
   });
   if (!res.ok) {
     let errorMsg = "Failed to analyze scan";
@@ -57,11 +28,24 @@ export async function analyzeScan(params: {
     throw new Error("Scan Analyze API did not return valid JSON.");
   }
 }
-import { supabase } from "@/integrations/supabase/client";
+
+// ---- Simulator AI ----
+export async function runSimulation(params: {
+  crops: string[];
+  weather: string;
+  market_change: number;
+  seed_quality: number;
+  district?: string;
+  language?: string;
+}) {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://symmetrical-guide-x5prw74947q4h5p7-4000.app.github.dev";
+  const url = `${backendUrl}/simulator-ai`;
+  // ...existing code...
+}
 
 // ---- Weather API ----
 export async function fetchWeatherData(state = "Putrajaya", district = "237", date = undefined) {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://symmetrical-guide-x5prw74947q4h5p7-4000.app.github.dev";
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
   const url = `${backendUrl}/api/weather-ai`;
   const res = await fetch(url, {
     method: "POST",
@@ -89,52 +73,11 @@ export async function fetchWeatherData(state = "Putrajaya", district = "237", da
 }
 
 // ---- Market AI ----
-export async function fetchMarketData(language = "en") {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
-  const url = `${backendUrl}/api/market-ai`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ language })
-  });
-  if (!res.ok) {
-    let errorMsg = "Failed to fetch market data";
-    try {
-      const text = await res.text();
-      errorMsg = text;
-    } catch {}
-    throw new Error(errorMsg);
-  }
-  try {
-    return await res.json();
-  } catch (e) {
-    throw new Error("Market API did not return valid JSON.");
-  }
-}
+// Duplicate fetchMarketData removed
 
 // ---- Crop Advisory ----
-export async function fetchCropAdvisory(district = "Kedah", season = "current", language = "en") {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://symmetrical-guide-x5prw74947q4h5p7-4000.app.github.dev";
-  const url = `${backendUrl}/api/crop-advisory`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ district, season, language })
-  });
-  if (!res.ok) {
-    let errorMsg = "Failed to fetch crop advisory";
-    try {
-      const text = await res.text();
-      errorMsg = text;
-    } catch {}
-    throw new Error(errorMsg);
-  }
-  try {
-    return await res.json();
-  } catch (e) {
-    throw new Error("Crop Advisory API did not return valid JSON.");
-  }
-}
+// Duplicate fetchCropAdvisory removed
+
 
 // ---- Database helpers ----
 export async function getProfile(userId: string) {

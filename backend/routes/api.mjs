@@ -22,5 +22,26 @@ router.post('/weather-ai', async (req, res) => {
   }
 });
 // Add similar endpoints for market-ai and crop-advisory as needed
+// Market endpoint 
+router.post('/market-ai', async (req, res) => {
+  res.json({
+    commodities: [
+      { crop: "Rice", price: 1200, trend: "up" },
+      { crop: "Corn", price: 900, trend: "down" },
+      { crop: "Palm Oil", price: 2500, trend: "stable" }
+    ]
+  });
+});
+
+// Crop advisory endpoint 
+router.post('/crop-advisory', async (req, res) => {
+  res.json({
+    recommendations: [
+      { crop: "Rice", recommendation: "Plant now", risk: "low" },
+      { crop: "Corn", recommendation: "Delay planting", risk: "medium" },
+      { crop: "Palm Oil", recommendation: "Monitor for pests", risk: "high" }
+    ]
+  });
+});
 
 export default router;
