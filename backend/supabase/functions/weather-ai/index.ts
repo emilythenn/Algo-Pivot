@@ -1,5 +1,5 @@
 // @ts-ignore: Deno runtime and remote imports are not recognized by VS Code/TypeScript
-import { serve } from "https://deno.land/std@0.168.0/http/server.js";
+import { serve } from "https://deno.land/std@0.171.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
