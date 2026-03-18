@@ -1,0 +1,53 @@
+[33mcommit 601ec8876ffcd10bdfb1e902b2b48e5e71cf324b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mzy[m[33m)[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Wed Mar 18 15:29:58 2026 +0000
+
+    Remove .env and add to .gitignore
+
+[33mcommit 66bec5a67ec7e90e8bb41cb1134c8c764cec7b77[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Wed Mar 18 14:39:56 2026 +0000
+
+    fix bugs
+
+[33mcommit 4c0a7d3a7756258a475b2e5203a7f1e2ad78dd63[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Wed Mar 18 13:31:12 2026 +0000
+
+    fix bug in weather-ai function and update .env with new MET_TOKEN
+
+[33mcommit efafc86301d64607359d8b65e6dc6bc38adb58cf[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Wed Mar 18 02:30:25 2026 +0000
+
+    fix bugs
+
+[33mcommit 3a391b5fb42e3e58ba03f2113e0b8b8df418c5d7[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Wed Mar 18 01:40:35 2026 +0000
+
+    update backend
+
+[33mcommit e0aa8e887d4fa11ba392b467a0ebb8881fd5118d[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Wed Mar 18 01:02:52 2026 +0000
+
+    fix bugs
+
+[33mcommit cf8107dd09679221038f80849735715480dbd016[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Wed Mar 18 01:02:45 2026 +0000
+
+    fix bugs
+
+[33mcommit f789be8954a955e083f0f2bd37dceda8e4822a88[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Tue Mar 17 14:50:55 2026 +0000
+
+    update readme
+
+[33mcommit ae82b23dce32cc559a5e0455b98073ee2a383eb4[m
+Author: Ham Zeng Yi <s2172849@siswa.um.edu.my>
+Date:   Tue Mar 17 14:43:21 2026 +0000
+
+    update frontend and backend
