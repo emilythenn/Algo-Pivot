@@ -24,7 +24,8 @@ export default function MarketPage() {
     setLoading(true);
     try {
       const data = await fetchMarketData(language);
-      setMarketData(data.commodities || data || []);
+      // API Ninjas returns { commodity: [{ symbol, price, ... }] }
+      setMarketData(data.commodity || []);
     } catch (e: any) {
       toast({ title: "Market load failed", description: e.message, variant: "destructive" });
     } finally {
@@ -37,10 +38,10 @@ export default function MarketPage() {
   const filteredData = Array.isArray(marketData)
     ? marketData.filter((item: any) => {
         if (searchQuery) {
-          return item.crop && item.crop.toLowerCase().includes(searchQuery.toLowerCase());
+          return item.symbol && item.symbol.toLowerCase().includes(searchQuery.toLowerCase());
         }
         if (selectedCrops.length > 0) {
-          return item.crop && selectedCrops.includes(item.crop);
+          return item.symbol && selectedCrops.includes(item.symbol);
         }
         return true;
       })
@@ -107,15 +108,15 @@ export default function MarketPage() {
               <div className="flex flex-wrap gap-2">
                 {marketData.map((item) => (
                   <button
-                    key={item.crop}
-                    onClick={() => toggleCropFilter(item.crop)}
+                    key={item.symbol}
+                    onClick={() => toggleCropFilter(item.symbol)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                      selectedCrops.includes(item.crop)
+                      selectedCrops.includes(item.symbol)
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border/30 text-muted-foreground hover:bg-secondary/30"
                     }`}
                   >
-                    {item.crop}
+                    {item.symbol}
                   </button>
                 ))}
               </div>
@@ -142,16 +143,12 @@ export default function MarketPage() {
 
       {/* Top Movers */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: t("market.topGainer"), crop: topGainer?.crop || "-", change: topGainer ? `+${topGainer.change}%` : "-", variant: "green" as const },
-          { label: t("market.topLoser"), crop: topLoser?.crop || "-", change: topLoser ? `${topLoser.change}%` : "-", variant: "red" as const },
-          { label: t("market.mostTraded"), crop: mostTraded?.crop || "-", change: mostTraded?.volume || "-", variant: "accent" as const },
-        ].map((item, i) => (
-          <motion.div key={item.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+        {filteredData.map((item, i) => (
+          <motion.div key={item.symbol} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
             <GlassCard className="p-5">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2 font-medium">{item.label}</p>
-              <p className="text-xl font-bold text-foreground">{item.crop}</p>
-              <div className="mt-2"><StatusBadge variant={item.variant}>{item.change}</StatusBadge></div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2 font-medium">Commodity</p>
+              <p className="text-xl font-bold text-foreground">{item.symbol}</p>
+              <div className="mt-2"><StatusBadge variant="accent">${item.price}</StatusBadge></div>
             </GlassCard>
           </motion.div>
         ))}
@@ -180,34 +177,23 @@ export default function MarketPage() {
               <tbody>
                 {filteredData.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
-                      No crops match your filter. Try selecting different crops.
+                    <td colSpan={2} className="p-8 text-center text-sm text-muted-foreground">
+                      No commodities match your filter. Try selecting different commodities.
                     </td>
                   </tr>
                 ) : (
-                  filteredData.map((item: any, i: number) => {
-                    const Icon = trendIcon[item.trend as keyof typeof trendIcon] || Minus;
-                    return (
-                      <motion.tr
-                        key={item.crop}
-                        className="border-b border-border/20 hover:bg-secondary/15 transition-colors"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 + i * 0.03 }}
-                      >
-                        <td className="p-4 font-semibold text-foreground">{item.crop}</td>
-                        <td className="p-4 text-right tabular-nums font-semibold text-foreground">RM {item.price?.toLocaleString()}<span className="text-[10px] text-muted-foreground ml-0.5">/{item.unit}</span></td>
-                        <td className="p-4 text-right">
-                          <StatusBadge variant={trendBadge[item.trend as keyof typeof trendBadge] || "accent"}>
-                            <Icon className="h-3 w-3" strokeWidth={1.5} /> {item.change > 0 ? "+" : ""}{item.change}%
-                          </StatusBadge>
-                        </td>
-                        <td className="p-4 text-right tabular-nums text-muted-foreground hidden md:table-cell">RM {item.weekHigh?.toLocaleString()}</td>
-                        <td className="p-4 text-right tabular-nums text-muted-foreground hidden md:table-cell">RM {item.weekLow?.toLocaleString()}</td>
-                        <td className="p-4 text-right tabular-nums text-muted-foreground hidden lg:table-cell">{item.volume}</td>
-                      </motion.tr>
-                    );
-                  })
+                  filteredData.map((item: any, i: number) => (
+                    <motion.tr
+                      key={item.symbol}
+                      className="border-b border-border/20 hover:bg-secondary/15 transition-colors"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.1 + i * 0.03 }}
+                    >
+                      <td className="p-4 font-semibold text-foreground">{item.symbol}</td>
+                      <td className="p-4 text-right tabular-nums font-semibold text-foreground">${item.price}</td>
+                    </motion.tr>
+                  ))
                 )}
               </tbody>
             </table>
